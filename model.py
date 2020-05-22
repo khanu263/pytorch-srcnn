@@ -12,7 +12,7 @@ import torch.nn.functional as F
 # Class definition
 class SRCNN(nn.Module):
 
-    # Model setup
+    # Model setup.
     def __init__(self):
 
         # Initialize superclass
@@ -24,7 +24,9 @@ class SRCNN(nn.Module):
         self.nl_mapping = nn.Conv2d(64, 32, kernel_size = 1)
         self.reconstruction = nn.Conv2d(32, 1, kernel_size = 5)
 
-    # Forward pass of input image
+    # Forward pass of input image.
+    # Arguments:
+    #  - x - tensor to push through network
     def forward(self, x):
 
         # First and second convolutional layers have ReLU
