@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Convert files in given folder to BMP3 format,
+# Convert files in given folder to usable BMPs,
 # and optionally rename in number sequence.
 
 # Set variables
@@ -14,11 +14,11 @@ do
     if [ $2 -eq 1 ]
     then
         new=$(printf "%02d.bmp" "$i")
-        convert $f BMP3:$dir$new
+        convert $f -compress none $dir$new
         rm $f
         let i=i+1
     else
-        convert $f BMP3:$f
+        convert $f -compress none $f
     fi
 done
 

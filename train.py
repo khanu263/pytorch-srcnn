@@ -29,6 +29,7 @@ matplotlib.rcParams["axes.titleweight"] = "bold"
 matplotlib.rcParams["axes.labelweight"] = "medium"
 matplotlib.rcParams["axes.titlesize"] = "medium"
 matplotlib.rcParams["axes.labelsize"] = "small"
+matplotlib.rcParams["axes.labelpad"] = 20.0
 matplotlib.rcParams['xtick.labelsize'] = "small"
 matplotlib.rcParams['ytick.labelsize'] = "small"
 matplotlib.rcParams['text.color'] = "#333333"
@@ -149,18 +150,22 @@ print("Finished testing. Average PSNR: {:.2f}."
 base_file = "zoom_{}".format(args.zoom)
 
 # Plot training and validation PSNR
+x_ax = list(range(1, args.epochs + 1))
 plt.figure(figsize = (10, 6))
-plt.x_label("Epoch")
-plt.y_label("Average PSNR (dB)")
-plt.plot(list(range(args.epochs)), avg_val_psnrs, "tab:blue", label = "validation")
-plt.plot(list(range(args.epochs)), avg_train_psnrs, "tab:orange", label = "training")
+plt.xlabel("Epoch")
+plt.ylabel("Average PSNR (dB)")
+plt.xticks(x_ax, x_ax)
+plt.plot(x_ax, avg_val_psnrs, "tab:blue", label = "validation")
+plt.plot(x_ax, avg_train_psnrs, "tab:orange", label = "training")
 plt.legend(loc = "best")
 plt.tight_layout()
 plt.savefig("figs/{}.png".format(base_file))
 print("Saved PSNR plot.")
 
 # Save raw PSNR data
-output_lines = ["\t".join(map(str, avg_train_psnrs)), "\t".join(map(str, avg_val_psnrs)), str(test_psnr / len(test_loader))]
+output_lines = ["train\t" + "\t".join(map(str, avg_train_psnrs)),
+                "valid\t" + "\t".join(map(str, avg_val_psnrs)),
+                "test\t" + str(test_psnr / len(test_loader))]
 with open("psnr/{}.txt".format(base_file), "w") as f:
     f.write("\n".join(output_lines))
 print("Saved raw PSNR data.")
