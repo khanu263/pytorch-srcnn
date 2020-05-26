@@ -48,7 +48,7 @@ class SRDataset(Dataset):
     # Function to load the Y channel (YCbCr) of the image from the given filepath.
     # Arguments:
     #  - filepath - path to image file
-    def load(filepath):
+    def load(self, filepath):
         raw = Image.open(filepath).convert("YCbCr")
         y, cb, cr = raw.split()
         return y
