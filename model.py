@@ -20,9 +20,9 @@ class SRCNN(nn.Module):
 
         # Define the three convolutional layers
         # (kernel sizes from paper)
-        self.patch_ex = nn.Conv2d(1, 64, kernel_size = 9)
-        self.nl_mapping = nn.Conv2d(64, 32, kernel_size = 1)
-        self.reconstruction = nn.Conv2d(32, 1, kernel_size = 5)
+        self.patch_ex = nn.Conv2d(1, 64, kernel_size = 9, padding = 4)
+        self.nl_mapping = nn.Conv2d(64, 32, kernel_size = 1, padding = 0)
+        self.reconstruction = nn.Conv2d(32, 1, kernel_size = 5, padding = 2)
 
     # Forward pass of input image.
     # Arguments:
