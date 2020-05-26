@@ -58,9 +58,9 @@ model = SRCNN().to(device)
 print("Created SRCNN model on device {}.".format(device))
 
 # Load datasets
-train_data = SRDataset("data/train", args.zoom)
-val_data = SRDataset("data/val", args.zoom)
-test_data = SRDataset("data/test", args.zoom)
+train_data = SRDataset("data/train/", args.zoom)
+val_data = SRDataset("data/val/", args.zoom)
+test_data = SRDataset("data/test/", args.zoom)
 print("Loaded datasets.")
 
 # Make data loaders
