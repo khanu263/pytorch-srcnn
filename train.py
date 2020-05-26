@@ -83,7 +83,7 @@ avg_train_psnrs = []
 avg_val_psnrs = []
 
 # Go through each epoch
-for e in args.epochs:
+for e in range(args.epochs):
 
     # Initialize PSNR accumulators
     train_psnr = 0
