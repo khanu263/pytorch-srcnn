@@ -38,7 +38,7 @@ matplotlib.rcParams['xtick.color'] = "#333333"
 matplotlib.rcParams['ytick.color'] = "#333333"
 matplotlib.rcParams["axes.facecolor"] = "white"
 matplotlib.rcParams["axes.edgecolor"] = "#333333"
-matplotlib.rcParams["lines.linewidth"] = 5.0
+matplotlib.rcParams["lines.linewidth"] = 2.5
 matplotlib.rcParams["axes.spines.top"] = False
 matplotlib.rcParams["axes.spines.right"] = False
 
