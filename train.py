@@ -7,6 +7,8 @@
 
 # Imports
 import sys
+import os
+import time
 import math
 import argparse
 import torch
@@ -46,17 +48,37 @@ matplotlib.rcParams["axes.spines.right"] = False
 parser = argparse.ArgumentParser()
 parser.add_argument("-z", "--zoom", type = int, required = True)
 parser.add_argument("-e", "--epochs", type = int, required = True)
+parser.add_argument("-b", "--batch-size", type = int, required = True)
 parser.add_argument("-c", "--cuda", default = False, action = "store_true")
+parser.add_argument("-r", "--resume")
 
 # Parse and check arguments
 args = parser.parse_args()
-if args.zoom < 1 or args.epochs < 1:
-    sys.exit("Zoom factor and epoch number must be at least 1.")
+if args.zoom < 1 or args.epochs < 1 or args.batch_size < 1:
+    sys.exit("Zoom factor, epoch count, and batch size must be at least 1.")
 
-# Load model
+# Select computation device
 device = torch.device("cuda:0" if (args.cuda and torch.cuda.is_available()) else "cpu")
-model = SRCNN().to(device)
-print("Created SRCNN model on device {}.".format(device))
+
+# Load model to continue training
+if args.resume:
+
+    # Check for file validity
+    if not os.path.isfile("models/" + args.resume + ".pt"):
+        sys.exit("Specified model does not exist.")
+
+    # Load model
+    model = torch.load("models/" + args.resume + ".pt")
+    print("Loaded SRCNN model.")
+
+# Create new model if not specified
+else:
+    model = SRCNN()
+    print("Created new SRCNN model.")
+
+# Shift model to computation device
+model = model.to(device)
+print("Moved model to device {}.".format(device))
 
 # Load datasets
 train_data = SRDataset("data/train/", args.zoom)
@@ -65,10 +87,10 @@ test_data = SRDataset("data/test/", args.zoom)
 print("Loaded datasets.")
 
 # Make data loaders
-train_loader = DataLoader(dataset = train_data, batch_size = 4, shuffle = True)
-val_loader = DataLoader(dataset = val_data, batch_size = 4, shuffle = False)
-test_loader = DataLoader(dataset = test_data, batch_size = 4, shuffle = False)
-print("Created data loaders.")
+train_loader = DataLoader(dataset = train_data, batch_size = args.batch_size, shuffle = True)
+val_loader = DataLoader(dataset = val_data, batch_size = args.batch_size, shuffle = False)
+test_loader = DataLoader(dataset = test_data, batch_size = args.batch_size, shuffle = False)
+print("Created data loaders with batch size {}.".format(args.batch_size))
 
 # Define the loss function and per-layer optimization, as per the paper
 criterion = nn.MSELoss()
@@ -76,15 +98,35 @@ optimizer = optim.SGD([
                         {"params": model.patch_ex.parameters(), "lr": 0.0001},
                         {"params": model.nl_mapping.parameters(), "lr": 0.0001},
                         {"params": model.reconstruction.parameters(), "lr": 0.00001}
-                      ], lr = 0.00001, momentum = 0.9)
+                      ], lr = 0.0001, momentum = 0.9)
 print("Defined loss and optimization.")
 
-# Initialize metric lists
-avg_train_psnrs = []
-avg_val_psnrs = []
+# Load metric lists from last training run
+if args.resume:
+
+    # Check for file validity
+    if not os.path.isfile("psnr/" + args.resume + ".txt"):
+        sys.exit("Specified metric file does not exist.")
+
+    # Read lines from file
+    lines = open("psnr/" + args.resume + ".txt", "r").read().splitlines()
+    avg_train_psnrs = [float(x) for x in lines[0].split("\t")[1:]]
+    avg_val_psnrs = [float(x) for x in lines[1].split("\t")[1:]]
+    offset = int(args.resume.split("_")[-1])
+    print("Loaded metric lists.")
+
+# Otherwise, initialize new metric lists
+else:
+    avg_train_psnrs = []
+    avg_val_psnrs = []
+    offset = 0
+    print("Initialized new metric lists.")
 
 # Go through each epoch
 for e in range(args.epochs):
+
+    # Start timing
+    t0 = time.time()
 
     # Initialize PSNR accumulators
     train_psnr = 0
@@ -122,10 +164,13 @@ for e in range(args.epochs):
     avg_train_psnrs.append(train_psnr / len(train_loader))
     avg_val_psnrs.append(val_psnr / len(val_loader))
 
+    # End timing
+    t1 = time.time()
+
     # Print results every five epochs
     if e % 5 == 0:
-        print("Finished epoch {}. Average training PSNR: {:.2f}. Average validation PSNR: {:.2f}."
-              .format(e, avg_train_psnrs[-1], avg_val_psnrs[-1]))
+        print("Finished epoch {}. Average training PSNR: {:.2f}. Average validation PSNR: {:.2f}. Time for epoch: {:.2f} sec."
+              .format(e + offset, avg_train_psnrs[-1], avg_val_psnrs[-1], t1 - t0))
 
 # Print final training metrics
 print("Finished training. Final training PSNR: {:.2f}. Final validation PSNR: {:.2f}."
@@ -147,10 +192,10 @@ print("Finished testing. Average PSNR: {:.2f}."
       .format(test_psnr / len(test_loader)))
 
 # Get filename for current model being trained
-base_file = "zoom_{}".format(args.zoom)
+base_file = "z{}_{}".format(args.zoom, args.epochs + offset)
 
 # Plot training and validation PSNR
-x_ax = list(range(1, args.epochs + 1))
+x_ax = list(range(1, args.epochs + offset + 1))
 plt.figure(figsize = (10, 6))
 plt.xlabel("Epoch")
 plt.ylabel("Average PSNR (dB)")
