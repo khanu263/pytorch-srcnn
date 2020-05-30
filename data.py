@@ -30,8 +30,9 @@ class SRDataset(Dataset):
         # Derive a valid crop from the zoom factor
         crop = CROP - (CROP % zoom)
 
-        # Get a list of filepaths for images in folder
+        # Get a list of filepaths for images in folder and initialize image list
         self.files = glob.glob(dirname + "*")
+        self.images = []
 
         # Define transforms for network inputs
         # (subsample and interpolate to synthesize low-resolution)
@@ -44,6 +45,13 @@ class SRDataset(Dataset):
         # (no manipulation needed)
         self.tf_out = transforms.Compose([transforms.CenterCrop(crop),
                                           transforms.ToTensor()])
+
+        # Loop through filepaths, load images, and decompose into patches
+        for filename in self.files:
+            raw = self.load(filename)
+            for i in range(0, raw.height - crop + 1, 14):
+                for j in range(0, raw.width - crop + 1, 14):
+                    self.images.append(raw.crop((j, i, j + crop, i + crop)))
 
     # Function to load the Y channel (YCbCr) of the image from the given filepath.
     # Arguments:
@@ -58,8 +66,8 @@ class SRDataset(Dataset):
     #  - i - index to retrieve
     def __getitem__(self, i):
 
-        # Load the image
-        input_img = self.load(self.files[i])
+        # Get the image
+        input_img = self.images[i]
         output_img = input_img.copy()
 
         # Apply transformations
@@ -73,4 +81,4 @@ class SRDataset(Dataset):
 
     # Hook function to retreive dataset length.
     def __len__(self):
-        return len(self.files)
+        return len(self.images)
