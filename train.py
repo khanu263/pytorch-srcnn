@@ -112,7 +112,7 @@ if args.resume:
     lines = open("psnr/" + args.resume + ".txt", "r").read().splitlines()
     avg_train_psnrs = [float(x) for x in lines[0].split("\t")[1:]]
     avg_val_psnrs = [float(x) for x in lines[1].split("\t")[1:]]
-    offset = int(args.resume.split("_")[-1])
+    offset = int(args.resume.split("_")[0])
     print("Loaded metric lists.")
 
 # Otherwise, initialize new metric lists
@@ -192,7 +192,7 @@ print("Finished testing. Average PSNR: {:.2f}."
       .format(test_psnr / len(test_loader)))
 
 # Get filename for current model being trained
-base_file = "z{}_{}".format(args.zoom, args.epochs + offset)
+base_file = "{}_z{}".format(args.epochs + offset, args.zoom)
 
 # Plot training and validation PSNR
 x_ax = list(range(1, args.epochs + offset + 1))
