@@ -8,13 +8,14 @@
 import sys
 import os
 import argparse
+import numpy as np
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
 
 # Build argument parser
 parser = argparse.ArgumentParser()
-parser.add_argument("-z", "--zoom", type = int, required = True)\
+parser.add_argument("-z", "--zoom", type = int, required = True)
 parser.add_argument("-e", "--epochs", type = int, required = True)
 parser.add_argument("-i", "--input", required = True)
 parser.add_argument("-o", "--output", required = True)
@@ -29,22 +30,23 @@ elif not os.path.isfile(args.input):
     sys.exit("The input path is not valid.")
 
 # Load the model
-model = torch.load(model_path)
+model = torch.load(model_path, map_location = torch.device('cpu'))
 print("Loaded model.")
 
 # Open input, do initial upscale, and extract channels
 initial = Image.open(args.input).convert("YCbCr")
-initial = x.resize((int(args.zoom * x.size[0]), int(args.zoom * x.size[1])), Image.BICUBIC)
-y, cb, cr = img.split()
+initial = initial.resize((int(args.zoom * initial.size[0]), int(args.zoom * initial.size[1])), Image.BICUBIC)
+y, cb, cr = initial.split()
 print("Processed input image.")
 
 # If bicubic is specified, save and exit now
 if args.bicubic:
-    initial.save(args.output)
+    initial.convert("RGB").save(args.output)
     sys.exit("Used bicubic upscaling and saved output.")
 
 # Convert input image (Y channel) to tensor and pass through network
-initial_tensor = transforms.ToTensor(y).view(1, -1, y.size[1], y.size[0])
+to_tensor = transforms.ToTensor()
+initial_tensor = to_tensor(y).view(1, -1, y.size[1], y.size[0])
 output_tensor = model(initial_tensor)
 print("Fed image through network.")
 
