@@ -1,5 +1,7 @@
 # pytorch-srcnn
 
+![example](./figs/example.png)
+
 A PyTorch implementation of the [SRCNN](http://mmlab.ie.cuhk.edu.hk/projects/SRCNN.html) network designed by Dong et al. along with pre-trained models for zoom factors 2 through 8.
 
 Install the core dependencies to upscale images using the pre-trained models. Install the extra dependencies if you also want to train your own models.
