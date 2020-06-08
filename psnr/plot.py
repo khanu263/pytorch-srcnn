@@ -1,4 +1,4 @@
-# upscale.py
+# plot.py
 # by Umair Khan
 # CS 410 - Spring 2020
 
